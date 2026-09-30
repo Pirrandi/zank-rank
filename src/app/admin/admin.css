@@ -1,0 +1,287 @@
+/* Tokens específicos del panel de admin, mapeados del mock
+   (design-reference/admin-redesign/admin-mock.dc.html).
+   Todo está scoped bajo `.admin` para no alterar el resto del sitio. */
+
+.admin {
+  --admin-surface: rgb(22, 20, 31);
+  --admin-surface-2: rgb(29, 27, 41);
+  --admin-border: rgb(43, 40, 57);
+  --admin-border-soft: rgb(34, 32, 45);
+  --admin-row-border: rgb(33, 31, 44);
+  --admin-accent: rgb(255, 212, 71);
+  --admin-accent-ink: rgb(26, 20, 0);
+  --admin-violet: rgb(169, 139, 255);
+  --admin-text: rgb(244, 242, 248);
+  --admin-text-dim: rgb(157, 153, 173);
+  --admin-text-faint: rgb(183, 179, 197);
+  --admin-text-muted: rgb(108, 104, 128);
+}
+
+/* ---------- Header (mock: <header> sticky + blur) ---------- */
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(13, 12, 19, 0.88);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--admin-border-soft);
+}
+
+.admin-header-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-logo-link {
+  display: flex;
+  align-items: baseline;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.admin-logo-dot {
+  color: var(--admin-accent);
+}
+
+.admin-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  background: var(--admin-violet);
+  color: rgb(21, 13, 46);
+  border-radius: 6px;
+  padding: 3px 7px;
+}
+
+.admin-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-ver-sitio {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--admin-text-faint);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.admin-ver-sitio:hover {
+  color: var(--color-text);
+}
+
+.admin-logout {
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text-dim);
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 12px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-logout:hover {
+  border-color: rgb(74, 71, 92);
+  color: var(--color-text);
+}
+
+/* ---------- Body: sidebar + main (mock: flex wrap, 1240px) ---------- */
+
+.admin-body {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 20px 140px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.admin-main {
+  flex: 999 1 560px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- Sidebar nav ---------- */
+
+.admin-nav {
+  flex: 1 1 200px;
+  max-width: 240px;
+  position: sticky;
+  top: 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--admin-text-dim);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-nav-item:hover {
+  color: var(--admin-text);
+}
+
+.admin-nav-item[aria-current="page"] {
+  background: var(--admin-surface-2);
+  color: var(--admin-text);
+}
+
+.admin-nav-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  background: var(--admin-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--admin-text-dim);
+  line-height: 1;
+}
+
+.admin-nav-item[aria-current="page"] .admin-nav-icon {
+  background: var(--admin-accent);
+  color: var(--admin-accent-ink);
+}
+
+.admin-nav-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--admin-text-muted);
+}
+
+.admin-nav-item-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.admin-nav-item-disabled:hover {
+  color: var(--admin-text-dim);
+}
+.admin-nav-badge {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  background: var(--admin-surface-2);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+/* ---------- Títulos de página (mock: h1 clamp + subtítulo) ---------- */
+
+.admin-page-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: clamp(28px, 3.4vw, 40px);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.admin-page-sub {
+  margin: 8px 0 0;
+  color: var(--admin-text-faint);
+  font-size: 15px;
+  max-width: 620px;
+}
+
+/* ---------- Overrides scoped de clases compartidas (tokens del mock) ---------- */
+
+.admin .card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+}
+
+.admin .input {
+  min-height: 44px;
+  background: var(--admin-surface-2);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+}
+
+.admin .select {
+  min-height: 44px;
+  background-color: var(--admin-surface-2);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+}
+
+.admin .select option,
+.admin .select optgroup {
+  background: var(--admin-surface-2);
+  color: var(--color-text);
+}
+
+.admin .btn {
+  border-radius: 12px;
+}
+
+.admin .btn-primary {
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent-ink);
+}
+
+.admin .btn-primary:hover {
+  background: rgb(255, 226, 122);
+  border-color: rgb(255, 226, 122);
+}
+
+/* En pantallas angostas el sidebar cae arriba del contenido y deja de ser sticky. */
+@media (max-width: 720px) {
+  .admin-nav {
+    position: static;
+    flex-basis: 100%;
+    max-width: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .admin-nav-item {
+    width: auto;
+  }
+}

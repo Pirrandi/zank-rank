@@ -1,0 +1,34 @@
+{
+  "name": "zank-rank",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "add-account": "tsx scripts/add-account.ts",
+    "poll": "tsx scripts/poll.ts",
+    "register-discord-command": "tsx scripts/register-discord-command.ts",
+    "analyze": "tsx scripts/analyze.ts",
+    "hash-admin-password": "tsx scripts/hash-admin-password.ts",
+    "migrate-workspaces": "tsx scripts/migrate-rankings.ts",
+    "migrate-rankings": "tsx scripts/migrate-rankings.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.0",
+    "sharp": "^0.35.4",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "prisma": "^6.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

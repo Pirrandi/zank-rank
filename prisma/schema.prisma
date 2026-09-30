@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String          @id @default(cuid())
+  discordId          String          @unique
+  username           String
+  avatar             String?
+  createdAt          DateTime        @default(now())
+  rankingMemberships RankingMember[]
+}
+
+// Renamed from Workspace (design "Rename Workspace to Ranking in code only"): the underlying
+// table keeps its original name via @@map, so no data migration is required.
+//
+// PR10 (design D9/D10): dropped `ownerId`/`owner`. Ownership is now expressed exclusively via
+// RankingMember(role="OWNER") — every ranking has always gotten one at creation (root bootstrap
+// in migrate-rankings.ts step 0, `createRankingAction`'s transaction), so this column only ever
+// duplicated that fact.
+model Ranking {
+  id             String          @id @default(cuid())
+  slug           String          @unique
+  name           String
+  visibility     String          @default("PUBLIC")
+  discordGuildId String?         @unique
+  createdAt      DateTime        @default(now())
+  members        RankingMember[]
+
+  @@map("Workspace")
+}
+
+// Per-ranking role assignment (design D5: OWNER > ADMIN > VIEWER, validated in TS, not a
+// SQLite enum). New model, so it uses the target "ranking" naming directly (no legacy
+// workspaceId baggage to preserve via @map).
+model RankingMember {
+  userId    String
+  rankingId String
+  role      String
+  user      User     @relation(fields: [userId], references: [id])
+  ranking   Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, rankingId])
+  @@index([rankingId])
+}
+
+// Cache for the bot's guild-membership REST check (design D1/D1a). TTL is enforced in
+// application code (10 min positive, 2 min negative), not in the schema.
+model GuildMemberCheck {
+  userId    String
+  guildId   String
+  isMember  Boolean
+  checkedAt DateTime @default(now())
+
+  @@id([userId, guildId])
+}
+
+
+model Setting {
+  rankingId String @map("workspaceId")
+  key       String
+  value     String
+
+  @@id([rankingId, key])
+  @@index([rankingId])
+}
+
+model TrackedAccount {
+  id             String   @id @default(cuid())
+  gameName       String
+  tagLine        String
+  puuid          String
+  platform       String
+  note           String?
+  profileIconId  Int?
+  inGame         Boolean  @default(false)
+  rankingId      String   @map("workspaceId")
+  createdAt      DateTime @default(now())
+  snapshots       RankSnapshot[]
+  participations  MatchParticipation[]
+  analysis        PlayerAnalysis?
+  predictionRounds PredictionRound[]
+
+  // D9: the same puuid can be tracked in several rankings at once. Riot match facts
+  // (Match) stay global; isolation between rankings comes from this composite key.
+  @@unique([rankingId, puuid])
+  @@index([rankingId])
+}
+
+model PredictionRound {
+  id          String   @id @default(cuid())
+  accountId   String
+  account     TrackedAccount @relation(fields: [accountId], references: [id])
+  gameId      String?
+  matchId     String?
+  match       Match?   @relation(fields: [matchId], references: [id])
+  queueType   String
+  championId  Int
+  messageId   String
+  content     String   @default("")
+  status      String   @default("open")
+  result      Boolean?
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+  rankingId   String   @map("workspaceId")
+  predictions Prediction[]
+
+  @@index([gameId, status])
+  @@index([matchId])
+  @@index([rankingId])
+}
+
+model Prediction {
+  id              String   @id @default(cuid())
+  roundId         String
+  round           PredictionRound @relation(fields: [roundId], references: [id])
+  discordUserId   String
+  discordUsername String
+  guess           Boolean
+  amount          Int      @default(0)
+  createdAt       DateTime @default(now())
+  rankingId       String   @map("workspaceId")
+
+  @@unique([roundId, discordUserId])
+  @@index([rankingId])
+}
+
+// PR10 (design D9/D12): re-keyed from a single global `discordUserId @id` to a per-ranking
+// composite key. The bot now resolves the ranking per guild (D12), so the same Discord user
+// must be able to hold an independent balance in every ranking whose guild they bet in.
+model Bettor {
+  discordUserId   String
+  discordUsername String
+  balance         Int       @default(100)
+  rankingId       String    @map("workspaceId")
+  // Bono gratis de 50 fichas cada 24h (claimDailyBonus en betting.ts). null = nunca reclamado.
+  lastFreeClaimAt DateTime?
+
+  @@id([rankingId, discordUserId])
+}
+
+model PlayerAnalysis {
+  id          String   @id @default(cuid())
+  accountId   String   @unique
+  account     TrackedAccount @relation(fields: [accountId], references: [id])
+  text        String
+  generatedAt DateTime @default(now())
+  rankingId   String   @map("workspaceId")
+
+  @@index([rankingId])
+}
+
+model RankSnapshot {
+  id           String   @id @default(cuid())
+  accountId    String
+  account      TrackedAccount @relation(fields: [accountId], references: [id])
+  queueType    String
+  tier         String
+  rank         String
+  leaguePoints Int
+  wins         Int
+  losses       Int
+  hotStreak    Boolean  @default(false)
+  capturedAt   DateTime @default(now())
+  rankingId    String   @map("workspaceId")
+
+  @@index([accountId, queueType, capturedAt])
+  @@index([rankingId])
+}
+
+// PR10 (design D9): dropped `rankingId` — Match only ever holds shared Riot facts (queue,
+// creation time, duration), identical for every tenant. Isolation between rankings comes from
+// MatchParticipation.rankingId (and PredictionRound.rankingId), never from this table directly.
+model Match {
+  id               String   @id
+  queueId          Int
+  gameCreation     DateTime
+  gameDuration     Int
+  participations   MatchParticipation[]
+  predictionRounds PredictionRound[]
+
+  @@index([gameCreation])
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  targetKey String
+  userId    String
+  label     String
+  createdAt DateTime @default(now())
+  rankingId String   @map("workspaceId")
+
+  // D9: targetKey can refer to a shared match/player id, so uniqueness must be scoped
+  // per ranking, not global.
+  @@unique([rankingId, targetKey, userId, label])
+  @@index([targetKey])
+  @@index([rankingId])
+}
+
+model MatchParticipation {
+  id           String   @id @default(cuid())
+  matchId      String
+  match        Match    @relation(fields: [matchId], references: [id])
+  accountId    String
+  account      TrackedAccount @relation(fields: [accountId], references: [id])
+  championName String
+  championId   Int
+  kills        Int
+  deaths       Int
+  assists      Int
+  win          Boolean
+  teamId       Int
+  doubleKills  Int      @default(0)
+  tripleKills  Int      @default(0)
+  quadraKills  Int      @default(0)
+  pentaKills   Int      @default(0)
+  epicSteals   Int      @default(0)
+  rankingId    String   @map("workspaceId")
+
+  @@unique([matchId, accountId])
+  @@index([rankingId])
+}
